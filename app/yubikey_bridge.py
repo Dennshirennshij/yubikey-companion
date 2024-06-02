@@ -45,6 +45,24 @@ def run(command: str) -> str:
     """Runs a shell command and returns its output."""
     return os.popen(command).read()
 
+def run2(command: str) -> str:
+    import subprocess
+    result = subprocess.run(command, shell=True, capture_output=True, text=True)
+    return result.stdout
+
+def getKeys() -> list:
+    command = "ykman oath accounts list"
+    output = run2(command)
+    lines = output.splitlines()
+    return lines
+
+
+def returnList(receivedMessage):
+    responseMessage = {
+        "type": "keysListing",
+        "list": getKeys()
+    }
+    sendMessage(encodeMessage(responseMessage))
 
 while True:
     receivedMessage = getMessage()
