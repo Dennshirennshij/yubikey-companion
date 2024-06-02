@@ -49,5 +49,8 @@ def run(command: str) -> str:
 while True:
     receivedMessage = getMessage()
     isGenerateOtp = receivedMessage.get("type") == "generateOtp"
+    isFetchList = receivedMessage.get("type") == "fetchOtp"
     if isGenerateOtp:
         handleGenerateOtpMessage(receivedMessage)
+    if isFetchList:
+        returnList(receivedMessage)

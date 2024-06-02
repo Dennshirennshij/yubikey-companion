@@ -42,6 +42,7 @@ async function getKeyName(url) {
     let codes = await getCodes();
     let codesMap = new Map(codes.map(i => [i.domain, i.codeName]));
     let host = url.match(/:\/\/(.[^/]+)/)[1];
+    // host now has the domain like www.google.com from https://www.google.com/myAccount.php
     return codesMap.get(host);
 }
 
