@@ -1,5 +1,5 @@
 "use strict";
-import { getCodes } from "/utils/storage.js";
+import { getCodes, storeList, getList } from "/utils/storage.js";
 
 var port = getNativePort();
 
@@ -9,7 +9,10 @@ port.onMessage.addListener((message) => {
         injectOtp(message["target"], message["otp"]);
     }
     if (message.type === "otpNotFound") {
-        console.error("Couldn't find the oath account with the key");
+        console.warn("Couldn't find the oath account with the key");
+    }
+    if (message.type === "keysListing") {
+        saveKeys(message["list"]);
     }
 });
 
@@ -24,6 +27,30 @@ browser.menus.create({
         }
     }
 });
+
+browser.menus.create(
+  {
+    id: "reload-keys",
+    title: "Reload Accounts List",
+    documentUrlPatterns: ["https://*/*", "http://*/*"],
+    contexts: ["editable"],
+    onclick(info,tab) {
+      if (info.menuItemId === "reload-keys") {
+        let targetParams = getTargetParams(info, tab);
+        let message = {
+          "type": "fetchOtp",
+          "target": targetParams
+        }
+        console.log("Sent message: " + JSON.stringify((message)));
+        port.postMessage(message);
+      }
+    }
+  }
+);
+
+function saveKeys(list) {
+  storeList(list);
+}
 
 function getNativePort() {
     return browser.runtime.connectNative("yubikey_bridge");
@@ -42,11 +69,28 @@ async function generateOtp(info, tab) {
 }
 
 async function getKeyName(url) {
+  /*
     let codes = await getCodes();
     let codesMap = new Map(codes.map(i => [i.domain, i.codeName]));
     let host = url.match(/:\/\/(.[^/]+)/)[1];
     // host now has the domain like www.google.com from https://www.google.com/myAccount.php
     return codesMap.get(host);
+  */
+  let list = await getList();
+  
+  const parsedList = list.map(item => {
+    const [domain, user] = item.split(':');
+    return { domain, user };
+  });
+
+  const groupedByDomain = parsedList.reduce((acc, { domain, user }) => {
+    if (!acc[domain]) {
+      acc[domain] = [];
+    }
+    acc[domain].push(user);
+    return acc;
+  }, {});
+  console.log("Grouped list: " + JSON.stringify(groupedByDomain));
 }
 
 function getTargetParams(info, tab) {
