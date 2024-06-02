@@ -64,19 +64,55 @@ function fetch_keys() {
   port.postMessage(message);
 }
 
-function saveKeys(list) {
+async function saveKeys(list) {
   storeList(list);
-  let groupedList = getGroupedList();
+  let groupedList = await getGroupedList(list);
+  let keys = Object.keys(groupedList);
+  console.log(keys);
+  keys.forEach(key => {
+    let allowed_domains = [];
+    if (key.split(".").length===2) {
+      // example: google.com
+      allowed_domains.push("https://" + key + "/*");  // https://domain.com/*
+      allowed_domains.push("http://" + key + "/*");   // http://domain.com/*
+      allowed_domains.push("https://*." + key + "/*");// https://account.google.com/*
+      allowed_domains.push("http://*." + key + "/*"); // http://accounts.google.com/*
+      console.log("For domain " + key + ": " + allowed_domains);
+    } else {
+      // example: accounts.google.com
+      allowed_domains.push("https://" + key + "/*");
+      allowed_domains.push("http://" + key + "/*");
+      console.log("For subdomain " + key + ": " + allowed_domains);
+    }
     
+    let usernames = groupedList[key];
+    console.log(usernames);
+    
+    
+    usernames.forEach(user => {
+      console.log(user);
+      browser.menus.create(
+        {
+          id: "generate-otp:" + key + ":" + user,
+          title: user,
+          documentUrlPatterns: allowed_domains,
+          contexts: ["editable"],
+          onclick(info,tab) {
+            generateOtp(info,tab, key + ":" + user);
+          }
+        }
+      );
+    });
+
+  })
 }
 
 function getNativePort() {
     return browser.runtime.connectNative("yubikey_bridge");
 }
 
-async function generateOtp(info, tab) {
+async function generateOtp(info, tab, keyName) {
     let targetParams = getTargetParams(info, tab);
-    let keyName = await getKeyName(info["pageUrl"]);
     let message = {
         "type": "generateOtp",
         "target": targetParams,
@@ -86,7 +122,7 @@ async function generateOtp(info, tab) {
     port.postMessage(message);
 }
 
-async function getGroupedList() {
+async function getGroupedList(list) {
   /*
     let codes = await getCodes();
     let codesMap = new Map(codes.map(i => [i.domain, i.codeName]));
@@ -94,7 +130,6 @@ async function getGroupedList() {
     // host now has the domain like www.google.com from https://www.google.com/myAccount.php
     return codesMap.get(host);
   */
-  let list = await getList();
   
   let parsedList = [];
 
@@ -111,9 +146,7 @@ async function getGroupedList() {
     acc[domain].push(user);
     return acc;
   }, {});
-  console.log("groupedList: " + groupedByDomain);
   console.log("Grouped list: " + JSON.stringify(groupedByDomain));
-  console.log("Grouped List Size: " + groupedByDomain.Size)
   return groupedByDomain;
 
   /*let host = url.match(/:\/\/(.[^/]+)/)[1];
