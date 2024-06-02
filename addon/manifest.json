@@ -20,7 +20,7 @@
     "storage"
   ],
 
-  "applications": {
+  "browser_specific_settings": {
     "gecko": {
       "id": "yubicompanion@dyeray",
       "strict_min_version": "92.0"

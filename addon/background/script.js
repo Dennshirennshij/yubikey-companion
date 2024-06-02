@@ -8,6 +8,9 @@ port.onMessage.addListener((message) => {
     if (message.type === "otpResponse") {
         injectOtp(message["target"], message["otp"]);
     }
+    if (message.type === "otpNotFound") {
+        console.error("Couldn't find the oath account with the key");
+    }
 });
 
 browser.menus.create({

@@ -60,6 +60,7 @@ def getKeys() -> list:
 def returnList(receivedMessage):
     responseMessage = {
         "type": "keysListing",
+        "target": receivedMessage["target"],
         "list": getKeys()
     }
     sendMessage(encodeMessage(responseMessage))
@@ -69,6 +70,9 @@ while True:
     isGenerateOtp = receivedMessage.get("type") == "generateOtp"
     isFetchList = receivedMessage.get("type") == "fetchOtp"
     if isGenerateOtp:
-        handleGenerateOtpMessage(receivedMessage)
+        if "keyName" in receivedMessage:
+            handleGenerateOtpMessage(receivedMessage)
+        else:
+                sendMessage(encodeMessage({"type": "otpNotFound", "target": receivedMessage["target"]}))
     if isFetchList:
         returnList(receivedMessage)
