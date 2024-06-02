@@ -60,7 +60,6 @@ def getKeys() -> list:
 def returnList(receivedMessage):
     responseMessage = {
         "type": "keysListing",
-        "target": receivedMessage["target"],
         "list": getKeys()
     }
     sendMessage(encodeMessage(responseMessage))
