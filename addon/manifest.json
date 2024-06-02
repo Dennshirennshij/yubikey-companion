@@ -9,13 +9,6 @@
     "48": "icons/star.png"
   },
   
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["content_scripts/script.js"]
-    }
-  ],
-
   "background": {
     "page": "background/page.html"
   },

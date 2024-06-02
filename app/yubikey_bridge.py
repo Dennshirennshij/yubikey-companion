@@ -57,7 +57,7 @@ def getKeys() -> list:
     return lines
 
 
-def returnList(receivedMessage):
+def returnList():
     responseMessage = {
         "type": "keysListing",
         "list": getKeys()
@@ -74,4 +74,4 @@ while True:
         else:
                 sendMessage(encodeMessage({"type": "otpNotFound", "target": receivedMessage["target"]}))
     if isFetchList:
-        returnList(receivedMessage)
+        returnList()
